@@ -10,7 +10,6 @@ const Mutex = require("./Mutex.js");
 const Mutex2 = require("./Mutex2.js");
 
 const path = require("./path.js");
-const clock = require("./clock.js");
 
 function cleanParams(filepath, opts) {
   // normalize paths
@@ -248,7 +247,7 @@ module.exports = class PromisifiedFS {
     return null
   }
   async unlink(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     const stat = this._cache.lstat(filepath);
     this._cache.unlink(filepath);
     if (stat.type !== 'symlink') {
@@ -257,17 +256,17 @@ module.exports = class PromisifiedFS {
     return null
   }
   async readdir(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     return this._cache.readdir(filepath);
   }
   async mkdir(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     const { mode = 0o777 } = opts;
     await this._cache.mkdir(filepath, { mode });
     return null
   }
   async rmdir(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     // Never allow deleting the root directory.
     if (filepath === "/") {
       throw new ENOTEMPTY();
@@ -276,31 +275,31 @@ module.exports = class PromisifiedFS {
     return null;
   }
   async rename(oldFilepath, newFilepath) {
-    ;[oldFilepath, newFilepath] = cleanParams2(oldFilepath, newFilepath);
+    [oldFilepath, newFilepath] = cleanParams2(oldFilepath, newFilepath);
     this._cache.rename(oldFilepath, newFilepath);
     return null;
   }
   async stat(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     const data = this._cache.stat(filepath);
     return new Stat(data);
   }
   async lstat(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     let data = this._cache.lstat(filepath);
     return new Stat(data);
   }
   async readlink(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     return this._cache.readlink(filepath);
   }
   async symlink(target, filepath) {
-    ;[target, filepath] = cleanParams2(target, filepath);
+    [target, filepath] = cleanParams2(target, filepath);
     this._cache.symlink(target, filepath);
     return null;
   }
   async backFile(filepath, opts) {
-    ;[filepath, opts] = cleanParams(filepath, opts);
+    [filepath, opts] = cleanParams(filepath, opts);
     let size = await this._http.sizeFile(filepath)
     await this._writeStat(filepath, size, opts)
     return null
