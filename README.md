@@ -87,6 +87,12 @@ fs.init(name, options)
 fs.init(different_name, different_options)
 ```
 
+### `fs.init(name, options?, cb?)`
+
+Init the filesystem
+
+Options object see [Usage](#usage).
+
 ### `fs.mkdir(filepath, opts?, cb)`
 
 Make directory

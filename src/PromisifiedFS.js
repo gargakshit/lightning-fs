@@ -65,7 +65,8 @@ module.exports = class PromisifiedFS {
     }
   }
   async init (...args) {
-    if (this._initPromiseResolve) await this._initPromise;
+    // Await always if already done finishes immediately
+    await this._initPromise;
     this._initPromise = this._init(...args)
     return this._initPromise
   }
@@ -82,17 +83,15 @@ module.exports = class PromisifiedFS {
     await this._gracefulShutdown()
     this._name = name
     this._idb = new IdbBackend(fileDbName, fileStoreName);
-    this._mutex = navigator.locks ? new Mutex2(name) : new Mutex(lockDbName, lockStoreName);
+    // don't create a new mutex if one already exists
+    if(!this._mutex)
+      this._mutex = navigator.locks ? new Mutex2(name) : new Mutex(lockDbName, lockStoreName);
     this._cache = new CacheFS(name);
     this._opts = { wipe, url };
     this._needsWipe = !!wipe;
     if (url) {
       this._http = new HttpBackend(url)
       this._urlauto = !!urlauto
-    }
-    if (this._initPromiseResolve) {
-      this._initPromiseResolve();
-      this._initPromiseResolve = null;
     }
     // The next comment starting with the "fs is initially activated when constructed"?
     // That can create contention for the mutex if two threads try to init at the same time
@@ -112,7 +111,6 @@ module.exports = class PromisifiedFS {
     }
   }
   _wrap (fn, mutating) {
-    let i = 0
     return async (...args) => {
       let op = {
         name: fn.name,
@@ -143,11 +141,8 @@ module.exports = class PromisifiedFS {
     this._deactivationPromise = null
     if (!this._activationPromise) this._activationPromise = this.__activate()
     await this._activationPromise
-    if (await this._mutex.has()) {
-      return
-    } else {
+    if (!await this._mutex.has())
       throw new ETIMEDOUT()
-    }
   }
   async __activate() {
     if (this._cache.activated) return
@@ -228,7 +223,7 @@ module.exports = class PromisifiedFS {
       data = await this._http.readFile(filepath)
     }
     if (data) {
-      if (!stat || stat.size != data.byteLength) {
+      if (!stat || stat.size !== data.byteLength) {
         stat = await this._writeStat(filepath, data.byteLength, { mode: stat ? stat.mode : 0o666 })
         this.saveSuperblock() // debounced
       }

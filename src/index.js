@@ -30,8 +30,13 @@ module.exports = class FS {
     this.backFile = this.backFile.bind(this)
     this.du = this.du.bind(this)
   }
-  init(name, options) {
-    this.promises.init(name, options)
+  init(name, options, cb) {
+    // add an optional callback because it is not possible to tell if the init finished in the non promise api
+    if(cb) {
+      const [resolve, reject] = wrapCallback(options, cb);
+      this.promises.init(name, options).then(resolve).catch(reject)
+    } else
+      this.promises.init(name, options)
   }
   readFile(filepath, opts, cb) {
     const [resolve, reject] = wrapCallback(opts, cb);
